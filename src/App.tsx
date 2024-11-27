@@ -13,10 +13,10 @@ import { Toaster } from "react-hot-toast";
 function App() {
   return (
     <div className="bg-night-navy-blue p-6 flex flex-col gap-5">
-      <Header />
       <HashRouter>
         <LoginProvider>
           <BudgetProvider>
+            <Header />
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route
@@ -47,13 +47,11 @@ function App() {
             <Toaster
               position="top-right"
               toastOptions={{
-                // Configurações padrão para todos os toasts
                 duration: 4000,
                 style: {
                   background: "#333",
                   color: "#fff",
                 },
-                // Opções específicas para diferentes tipos de toast
                 success: {
                   style: {
                     background: "#4CAF50",

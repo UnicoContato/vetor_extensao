@@ -61,7 +61,7 @@ export function LoginProvider({ children }: LoginProviderProps) {
 
   const logout = () => {
     setToken(null);
-    setToken(null);
+    setUserId(null);
 
     if (chrome?.storage?.sync) {
       chrome.storage.sync.remove(["token", "userId"]);
