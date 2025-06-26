@@ -9,23 +9,27 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: "https://api-sgf-gateway.triersistemas.com.br",
+        changeOrigin: true,
+        secure: false, // Se o servidor usa HTTPS com certificado inválido, mantenha false
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
+  },
   build: {
-    // Aumenta o limite de aviso de tamanho do chunk
     chunkSizeWarningLimit: 1000,
-
-    // Configuração de chunking manual
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Separa dependências de node_modules em chunks diferentes
           if (id.includes("node_modules")) {
             return "vendor";
           }
         },
       },
     },
-
-    // Habilita a compressão de código
     minify: "terser",
     terserOptions: {
       compress: {

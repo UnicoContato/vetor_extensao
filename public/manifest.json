@@ -1,5 +1,5 @@
 {
-  "name": "InovaFarma",
+  "name": "Trier Sistemas",
   "description": "Versão de teste para extensão de Integrações",
   "version": "1.0",
   "manifest_version": 3,
@@ -15,5 +15,8 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self';"
   },
-  "permissions": ["storage", "tabs", "activeTab"]
+  "permissions": ["storage", "tabs", "activeTab", "webRequest", "webRequestBlocking"],
+  "host_permissions": [
+    "https://api-sgf-gateway.triersistemas.com.br/*"
+  ]
 }

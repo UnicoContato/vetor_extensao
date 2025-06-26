@@ -35,6 +35,7 @@ export function AddressForm() {
       neighborhood: "",
       state: "",
       city: "",
+      taxEntrega: "0",
     },
   });
 
@@ -67,6 +68,7 @@ export function AddressForm() {
   };
 
   const handleAddress = async (data: AddressSchema) => {
+    console.log('Dados:', data)
     setAddressInfo(data);
     navigate("/chats");
   };
@@ -130,6 +132,16 @@ export function AddressForm() {
             disable
             register={register("city")}
             error={errors.city?.message}
+          />
+        </div>
+
+        <div className="flex flex-col gap-3">
+
+          <InputLabel
+            label="Taxa de entrega"
+            required
+            register={register("taxEntrega")}
+            error={errors.taxEntrega?.message}
           />
         </div>
 

@@ -9,7 +9,7 @@ import React, {
 export interface BudgetItem {
   id: string;
   product: {
-    code: string;
+    code: number;
     name: string;
     price: number;
     quantity: number;

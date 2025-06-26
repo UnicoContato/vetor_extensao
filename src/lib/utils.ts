@@ -6,6 +6,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function formatCPF(cpf: string): string {
+  const numericCpf = cpf.replace(/\D/g, '');
+  return numericCpf
+    .slice(0, 11)
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+}
+
 interface AddressInfo {
   street?: string;
   number?: string;
@@ -24,6 +33,12 @@ export function formatBudgetMessage(
   addressInfo: AddressInfo | null,
   data: PaymentMethodData
 ): string {
+  // --- CORREÇÃO APLICADA AQUI ---
+  // Se a lista de itens estiver vazia, retorna uma mensagem padrão ou de erro.
+  if (budgetItems.length === 0) {
+    return "Não há itens no orçamento para formatar.";
+  }
+
   let message = `\n\n📋 *Orçamento*\n\n`;
 
   if (addressInfo) {
@@ -38,7 +53,6 @@ export function formatBudgetMessage(
     message += `CEP: ${addressInfo.cep || "Não informado"}\n\n`;
   }
 
-  // Detalhes dos produtos
   message += `🛍️ *Itens do Orçamento:*\n`;
 
   let totalGeral = 0;
@@ -47,7 +61,6 @@ export function formatBudgetMessage(
     message += `Quantidade: ${item.quantity}\n`;
     message += `Preço Unitário: R$ ${item.price.toFixed(2)}\n`;
 
-    // Cálculo de desconto
     const descontoValor = item.price * (item.discount / 100);
 
     message += `Desconto: ${item.discount}% (R$ ${descontoValor.toFixed(2)})\n`;
@@ -56,12 +69,13 @@ export function formatBudgetMessage(
     totalGeral += item.total;
   });
 
-  // Resumo final
   message += `\n💰 *Resumo:*\n`;
   message += `Total Geral: R$ ${totalGeral.toFixed(2)}\n`;
   message += `Método de Pagamento: ${data.paymentMethod}\n`;
+  
+  // A verificação no início da função garante que budgetItems[0] sempre existirá aqui.
   message += `Entrega: ${
-    budgetItems[0].hasDelivery === "Sim" ? "Com Entrega" : "Sem Entrega"
+    budgetItems[0].hasDelivery === true ? "Com Entrega" : "Sem Entrega"
   }`;
 
   return message;

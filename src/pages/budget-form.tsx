@@ -12,13 +12,16 @@ import { useNavigate } from "react-router-dom";
 import { BudgetItem } from "../context/BudgetContext";
 import { useBudget } from "@/hooks/use-budget";
 import { productSchema, type ProductFormData } from "@/zod";
+import {
+  ProductInfo
+} from "@/services/googleSheetsService";
 
-interface ProductInfo {
-  codigoProduto: string;
-  nomeProduto: string;
-  valorVenda: number;
-  estoque: number;
-}
+// interface ProductInfo {
+//   codigoProduto: string;
+//   nomeProduto: string;
+//   valorVenda: number;
+//   estoque: number;
+// }
 
 export function BudgetForm() {
   const navigate = useNavigate();
@@ -57,8 +60,8 @@ export function BudgetForm() {
     const newBudgetItem: BudgetItem = {
       id: uuidv4(),
       product: {
-        code: selectedProduct.codigoProduto,
-        name: selectedProduct.nomeProduto,
+        code: selectedProduct.codigo,
+        name: selectedProduct.nome,
         price: selectedProduct.valorVenda,
         quantity: formData.quantity,
         discount: formData.discount,
@@ -117,6 +120,7 @@ export function BudgetForm() {
               label="Desconto (%)"
               type="number"
               placeholder="0"
+              step="any"
               register={register("discount", { valueAsNumber: true })}
               error={errors.discount?.message}
             />

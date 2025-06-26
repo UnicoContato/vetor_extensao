@@ -8,6 +8,7 @@ export const addressSchema = z.object({
   neighborhood: z.string().min(1, "Obrigatório"),
   state: z.string().length(2, "Obrigatório"),
   city: z.string().min(1, "Obrigatório"),
+  taxEntrega: z.string().min(4, "Taxa deve ser maior que 0 no formato EX: 0.00"),
 });
 
 export type AddressSchema = z.infer<typeof addressSchema>;
@@ -35,6 +36,8 @@ export const paymentMethodSchema = z.object({
   paymentMethod: z.enum(["Pix", "Crédito", "Débito"], {
     errorMap: () => ({ message: "Selecione uma forma de pagamento válida" }),
   }),
+
+  cpfClient: z.string().min(14, "Por favor digite um CPF válido"),
 });
 
 export type PaymentMethodSchema = z.infer<typeof paymentMethodSchema>;

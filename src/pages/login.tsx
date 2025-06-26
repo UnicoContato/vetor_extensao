@@ -8,7 +8,6 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Lock, User, LogIn } from "lucide-react";
 import toast from "react-hot-toast";
-
 export function Login() {
   const { login } = useLogin();
   const navigate = useNavigate();
@@ -24,13 +23,10 @@ export function Login() {
 
   const handleLogin = async (data: LoginSchema) => {
     try {
-      const response = await axios.post(
-        "https://ambientesdetesteunicocontato.atenderbem.com/login",
-        {
-          username: data.user,
-          password: data.password,
-        }
-      );
+      const response = await axios.post(`${import.meta.env.VITE_INSTANCE_URL}login`, {
+        username: data.user,
+        password: data.password,
+      });
 
       if (response.data.user.type === 0) {
         toast.error(
