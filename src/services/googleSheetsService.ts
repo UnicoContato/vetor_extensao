@@ -31,7 +31,7 @@ export interface Budget {
   paymentMethod: string;
   taxEntrega?: string;
   cpfClient: string;
-  neighborhood:string;
+  neighborhood: string;
 }
 
 // --- Funções de baixo nível e getProducts (sem alterações) ---
@@ -135,7 +135,6 @@ export async function getProducts(): Promise<ProductInfo[]> {
   return getProductsFromCache();
 }
 
-
 // --- A FUNÇÃO DE ENVIO CORRIGIDA E SIMPLIFICADA ---
 
 export async function sendToGoogleSheets(budgetItems: Budget[]) {
@@ -150,13 +149,13 @@ export async function sendToGoogleSheets(budgetItems: Budget[]) {
 
   const valorTotal = produtos.reduce((total, value) => {
     const subtotal = value.quantidade * value.valorUnitario;
-    const subtotalComDesconto = subtotal * (1 - (value.valorDesconto / 100));
+    const subtotalComDesconto = subtotal * (1 - value.valorDesconto / 100);
     return total + subtotalComDesconto;
   }, 0);
 
   const primeiroItem = budgetItems[0];
   if (!primeiroItem) {
-    console.error("sendToGoogleSheets chamada com array vazio.");
+    console.error('sendToGoogleSheets chamada com array vazio.');
     return;
   }
 
@@ -169,27 +168,27 @@ export async function sendToGoogleSheets(budgetItems: Budget[]) {
     dataPedido: new Date().toISOString().split('T')[0],
     valorTotalVenda: valorTotal,
     // O campo valorFrete foi removido temporariamente para o teste
-    entrega: isDelivery ? "Sim" : "Não", // Enviando como String ("Sim"/"Não")
+    entrega: isDelivery ? 'Sim' : 'Não', // Enviando como String ("Sim"/"Não")
     cliente: {
-      codigo: "",
-      nome: primeiroItem.clientName || "",
+      codigo: '',
+      nome: primeiroItem.clientName || '',
       // O campo numeroCpfCnpj foi removido temporariamente para o teste
-      numeroRGIE: "",
-      sexo: "",
-      dataNascimento: "",
-      celular: "",
-      fone: "",
-      email: "",
+      numeroRGIE: '',
+      sexo: '',
+      dataNascimento: '',
+      celular: '',
+      fone: '',
+      email: '',
     },
     enderecoEntrega: {
-      logradouro: primeiroItem.street || "Retirada em loja",
-      numero: primeiroItem.number || "S/N",
-      complemento: "",
-      referencia: "",
-      bairro: primeiroItem.neighborhood || "Loja",
-      cidade: primeiroItem.city || "N/A",
-      estado: primeiroItem.state || "N/A",
-      cep: primeiroItem.cep || "00000000",
+      logradouro: primeiroItem.street || 'Retirada em loja',
+      numero: primeiroItem.number || 'S/N',
+      complemento: '',
+      referencia: '',
+      bairro: primeiroItem.neighborhood || 'Loja',
+      cidade: primeiroItem.city || 'N/A',
+      estado: primeiroItem.state || 'N/A',
+      cep: primeiroItem.cep || '00000000',
     },
     pagamento: {
       pagamentoRealizado: false,
@@ -209,7 +208,7 @@ export async function sendToGoogleSheets(budgetItems: Budget[]) {
       headers: {
         Authorization: `Bearer eyJhbGciOiJIzI1NiJ9.eyJjb2RfZmlsaWFsIjoiOTkiLCJzY29wZSI6WyJkcm9nYXJpYSJdLCJ0b2tlbl9pbnRlZ3JhY2FvIjoidHJ1ZSIsImNvZF9mYXJtYWNpYSI6IjMwODgiLCJleHAiOjQxMDI0NTU2MDAsImlhdCI6MTcwOTgxNzE5OCwianRpIjoiZjA1N2IwOTYtNjFhOC00MGFhLWJkOGUtMWI4ZGYzNjZlNmEzIiwiY29kX3VzdWFyaW8iOiI0NiIsImF1dGhvcml0aWVzIjpbIkFQSV9JTlRFR1JBQ0FPIl19.b9D3oUNeVa0Z28mYhEuBwPQ_RhcQWIEogHJdRYun77g`,
       },
-    }
+    },
   );
 
   if (response.status !== 200 && response.status !== 204) {
