@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+
+import { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { v4 as uuidv4 } from "uuid";
@@ -12,9 +13,9 @@ import { useNavigate } from "react-router-dom";
 import { BudgetItem } from "../context/BudgetContext";
 import { useBudget } from "@/hooks/use-budget";
 import { productSchema, type ProductFormData } from "@/zod";
-import {
-  ProductInfo
-} from "@/services/googleSheetsService";
+import { getProductsFromCache } from "@/cache/productCache";
+import { ProductInfo } from "@/services/googleSheetsService";
+
 
 // interface ProductInfo {
 //   codigoProduto: string;
@@ -30,6 +31,26 @@ export function BudgetForm() {
   const [selectedProduct, setSelectedProduct] = useState<ProductInfo | null>(
     null
   );
+
+  
+
+ const [products, setProducts] = useState<ProductInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // useEffect PARA BUSCAR OS PRODUTOS
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const cachedProducts = await getProductsFromCache();
+        setProducts(cachedProducts);
+      } catch (error) {
+        console.error("Erro ao buscar produtos do cache:", error);
+      } finally {
+        setIsLoading(false); // Finaliza o carregamento
+      }
+    }
+    loadProducts();
+  }, []); // O array vazio [] garante que isso rode apenas uma vez
 
   const {
     register,
@@ -102,7 +123,9 @@ export function BudgetForm() {
               Produto
               <span className="text-red-400 ml-1">*</span>
             </Label>
-            <Combobox onProductSelect={handleProductSelect} />
+            <Combobox  products={products} 
+              isLoading={isLoading} 
+              onProductSelect={handleProductSelect}/>
           </div>
 
           <div className="col-span-2 flex flex-col gap-1.5">

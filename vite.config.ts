@@ -1,41 +1,26 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import path from "path";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
   server: {
     proxy: {
-      "/api": {
-        target: "https://api-sgf-gateway.triersistemas.com.br",
+      // Quando uma chamada para '/api-zetti' for feita...
+      '/api-zetti': {
+        // ...redirecione para este endereço
+        target: 'https://integracao.zetti.dev',
+        // Necessário para o servidor de destino aceitar a requisição
         changeOrigin: true,
-        secure: false, // Se o servidor usa HTTPS com certificado inválido, mantenha false
-        rewrite: (path) => path.replace(/^\/api/, ""),
+        // Remove o '/api-zetti' antes de enviar a requisição final
+        // (Ex: '/api-zetti/produtos' vira '/produtos')
+        rewrite: (path) => path.replace(/^\/api-zetti/, ''),
       },
     },
   },
-  build: {
-    chunkSizeWarningLimit: 1000,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes("node_modules")) {
-            return "vendor";
-          }
-        },
-      },
-    },
-    minify: "terser",
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
+   resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
     },
   },
 });

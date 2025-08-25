@@ -20,7 +20,7 @@ export interface Budget {
   price: number;
   discount: number;
   total: number;
-  hasDelivery: boolean; // Mantemos booleano aqui, a conversão é feita no envio
+  hasDelivery: boolean;
   cep?: string;
   street?: string;
   number?: string;
@@ -34,59 +34,87 @@ export interface Budget {
   neighborhood: string;
 }
 
-// --- Funções de baixo nível e getProducts (sem alterações) ---
-// O código de fetchProductsFromApi, forceSync e getProducts continua o mesmo da versão anterior.
-// ... (cole aqui as funções fetchProductsFromApi, forceSync, e getProducts da nossa última versão)
+// ===================================================================
+// --- INÍCIO DA SEÇÃO MODIFICADA ---
+// ===================================================================
 
+/**
+ * MODIFICADO: Busca produtos da nova API Zetti.
+ * https://integracao.zetti.dev/api/ecommerce/produtos/consulta
+ */
 async function fetchProductsFromApi(): Promise<ProductInfo[]> {
-  const API_BASE_URL =
+  // 1. Defina a nova URL base da API
+  const API_BASE_URL = 'https://integracao.zetti.dev';
+
+  // Para desenvolvimento local, você pode usar um proxy em seu vite.config.ts
+  // Ex: /api-zetti -> https://integracao.zetti.dev
+  const API_URL =
     window.location.protocol === 'chrome-extension:'
-      ? 'https://api-sgf-gateway.triersistemas.com.br'
-      : '/api';
+      ? API_BASE_URL
+      : '/api-zetti'; // Usar um novo caminho de proxy é uma boa prática
 
-  let allProducts: ProductInfo[] = [];
-  let primeiroRegistro = 1;
-  const quantidadeRegistros = 999;
+  try {
+    eventBus.emit('loading:status', 'Conectando à API de produtos...');
 
-  while (true) {
-    try {
-      const response = await axios.get<ProductInfo[]>(
-        `${API_BASE_URL}/sgfpod1/rest/integracao/produto/obter-v1`,
-        {
-          params: {
-            primeiroRegistro,
-            quantidadeRegistros,
-            ativo: true,
-            integracaoEcommerce: true,
-          },
-          headers: {
-            Authorization: `Bearer ${import.meta.env.VITE_CLIENT_TOKEN}`,
-          },
+    // 2. Faz a chamada para o novo endpoint
+    const response = await axios.get(
+      `${API_URL}/api/ecommerce/produtos/consulta`,
+      {
+        // 3. Remove os parâmetros de paginação antigos
+        // 4. Atualiza o cabeçalho de autorização
+        headers: {
+          Authorization: `ApiKey ${import.meta.env.VITE_CLIENT_TOKEN}`,
         },
+      },
+    );
+
+    // 5. Acessa o array de produtos na estrutura de resposta aninhada
+    const apiProducts = response.data?.data;
+
+    if (!apiProducts || !Array.isArray(apiProducts)) {
+      console.error(
+        'A resposta da API não contém um array de produtos no formato esperado.',
+        response.data,
       );
-
-      if (!response.data || response.data.length === 0) break;
-
-      allProducts = allProducts.concat(response.data);
-      primeiroRegistro += quantidadeRegistros;
-
       eventBus.emit(
         'loading:status',
-        `${allProducts.length.toLocaleString('pt-BR')} produtos carregados...`,
+        'Erro: Formato de dados inesperado recebido da API.',
       );
-    } catch (error) {
-      eventBus.emit(
-        'loading:status',
-        `Erro ao buscar dados. Verifique a conexão.`,
-      );
-      throw error;
+      return []; // Retorna um array vazio para não quebrar a aplicação
     }
+
+const allProducts: ProductInfo[] = apiProducts
+  .filter((product: any) => product.cdProduto != null) 
+  .map((product: any) => ({
+    codigo: product.cdProduto,
+    nome: product.descricao,
+    valorVenda: product.vlrTabela,
+    quantidadeEstoque: product.qtdEstoque,
+  }));
+
+    eventBus.emit(
+      'loading:status',
+      `${allProducts.length.toLocaleString('pt-BR')} produtos carregados...`,
+    );
+
+    return allProducts;
+  } catch (error) {
+    console.error('Erro ao buscar produtos da API Zetti:', error);
+    eventBus.emit(
+      'loading:status',
+      `Erro ao buscar dados. Verifique a conexão e a configuração da API.`,
+    );
+    throw error;
   }
-  return allProducts;
 }
+
+// ===================================================================
+// --- FIM DA SEÇÃO MODIFICADA ---
+// ===================================================================
 
 export async function forceSync() {
   eventBus.emit('loading:status', 'Buscando dados na API...');
+  // Nenhuma alteração aqui, ele já usa a nova fetchProductsFromApi
   const products = await fetchProductsFromApi();
 
   if (products.length > 0) {
@@ -96,6 +124,9 @@ export async function forceSync() {
   }
   return products;
 }
+
+// --- Funções getProducts e de envio para o Google Sheets (sem alterações) ---
+// O restante do arquivo pode continuar exatamente como está.
 
 let initialSyncPromise: Promise<ProductInfo[]> | null = null;
 let lastRevalidationTimestamp: number | null = null;
@@ -134,9 +165,6 @@ export async function getProducts(): Promise<ProductInfo[]> {
 
   return getProductsFromCache();
 }
-
-// --- A FUNÇÃO DE ENVIO CORRIGIDA E SIMPLIFICADA ---
-
 export async function sendToGoogleSheets(budgetItems: Budget[]) {
   // Mapeia para a estrutura de produtos que a API espera
   const produtos = budgetItems.map((data) => ({
@@ -206,7 +234,7 @@ export async function sendToGoogleSheets(budgetItems: Budget[]) {
     body,
     {
       headers: {
-        Authorization: `Bearer eyJhbGciOiJIzI1NiJ9.eyJjb2RfZmlsaWFsIjoiOTkiLCJzY29wZSI6WyJkcm9nYXJpYSJdLCJ0b2tlbl9pbnRlZ3JhY2FvIjoidHJ1ZSIsImNvZF9mYXJtYWNpYSI6IjMwODgiLCJleHAiOjQxMDI0NTU2MDAsImlhdCI6MTcwOTgxNzE5OCwianRpIjoiZjA1N2IwOTYtNjFhOC00MGFhLWJkOGUtMWI4ZGYzNjZlNmEzIiwiY29kX3VzdWFyaW8iOiI0NiIsImF1dGhvcml0aWVzIjpbIkFQSV9JTlRFR1JBQ0FPIl19.b9D3oUNeVa0Z28mYhEuBwPQ_RhcQWIEogHJdRYun77g`,
+        Authorization: `ApiKey ${import.meta.env.VITE_CLIENT_TOKEN}`,
       },
     },
   );

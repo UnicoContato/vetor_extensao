@@ -132,7 +132,7 @@ export function Chats() {
         cep: addressInfo?.cep,
         street: addressInfo?.street,
         number: addressInfo?.number,
-        neighborhood: addressInfo?.neighborhood,
+        neighborhood: addressInfo?.neighborhood || '',
         city: addressInfo?.city,
         state: addressInfo?.state,
         clientName: selectedChat.clientName,
